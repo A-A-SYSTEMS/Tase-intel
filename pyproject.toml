@@ -1,0 +1,102 @@
+# ============================================================
+# tase-intel — Python Project Configuration
+# ============================================================
+# Minimal dependencies for Batch 1 (scaffold).
+# Future batches will add specifics; for now we keep it lean.
+# ============================================================
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tase-intel"
+version = "0.1.0"
+description = "AI Trading Intelligence System for the Israeli Stock Market (TASE) — Phase 1: Data Layer"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Proprietary — All Rights Reserved" }
+authors = [
+    { name = "tase-intel owner" },
+]
+
+# ---- Runtime dependencies ----
+# Pinned ranges, not exact versions, to allow security patches.
+# Add new deps in future batches with explicit justification in the PR.
+dependencies = [
+    "psycopg[binary]>=3.1,<4.0",     # PostgreSQL driver (modern API)
+    "sqlalchemy>=2.0,<3.0",          # SQL toolkit (used by Alembic in Batch 2+)
+    "alembic>=1.13,<2.0",            # Migrations (Batch 2+)
+    "pydantic>=2.5,<3.0",            # Schema validation (used by data layer)
+    "python-dotenv>=1.0,<2.0",       # Load .env in scripts
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0,<9.0",
+    "pytest-cov>=4.1,<5.0",
+    "ruff>=0.3,<1.0",                # linter + formatter
+    "mypy>=1.8,<2.0",                # type checking
+]
+
+# ---- Tool configurations ----
+
+[tool.setuptools.packages.find]
+where = ["src"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Per IMPLEMENTATION_GUARDRAILS §6: no xfail/skip without explicit justification.
+# We do NOT set --strict-markers or --strict-config to allow incremental adoption,
+# but we do require failures to be visible.
+addopts = [
+    "-ra",                # show short test summary for all non-passing
+    "--showlocals",       # locals on failure
+    "--tb=short",         # concise tracebacks
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests", "scripts"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # bugbear
+    "C4",  # comprehensions
+    "SIM", # simplify
+    "RUF", # ruff-specific
+]
+ignore = [
+    "E501",  # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_unused_configs = true
+warn_return_any = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+exclude = [
+    "src/migrations/versions/.*",  # Alembic revisions are auto-generated
+]

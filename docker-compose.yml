@@ -1,0 +1,56 @@
+# ============================================================
+# tase-intel — Local Docker Compose
+# ============================================================
+# Postgres 15 + TimescaleDB Community, single service.
+# Image is pinned (no `latest`) per IMPLEMENTATION_GUARDRAILS.
+#
+# Usage:
+#   make up    — starts the database
+#   make down  — stops and removes containers (data persists in volume)
+#   make clean — stops AND wipes volume (destructive)
+#
+# Connect:
+#   make psql
+#   psql postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}
+# ============================================================
+
+services:
+  db:
+    image: ${TIMESCALEDB_IMAGE:-timescale/timescaledb:2.14.2-pg15}
+    container_name: tase_intel_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-tase_intel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required in .env}
+      POSTGRES_DB: ${POSTGRES_DB:-tase_intel}
+      # Locale settings: stable for predictable sort/collation behavior
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-tase_intel} -d ${POSTGRES_DB:-tase_intel}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    # TimescaleDB requires shared_preload_libraries; the image sets this by default,
+    # but we make it explicit and pin a few sane defaults.
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=timescaledb
+      - -c
+      - max_connections=100
+      - -c
+      - log_statement=none           # set to 'all' temporarily if debugging
+      - -c
+      - log_min_duration_statement=500  # log slow queries (>500ms)
+      - -c
+      - timezone=UTC
+
+volumes:
+  pgdata:
+    name: tase_intel_pgdata

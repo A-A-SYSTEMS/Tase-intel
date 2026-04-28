@@ -1,0 +1,98 @@
+# ============================================================
+# tase-intel .gitignore
+# ============================================================
+
+# ---- Secrets / Local config ----
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+secrets/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# pytest / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+
+# mypy / ruff
+.mypy_cache/
+.ruff_cache/
+.dmypy.json
+dmypy.json
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# ---- Postgres / Docker ----
+postgres-data/
+pgdata/
+*.dump
+*.sql.gz
+
+# ---- IDE ----
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- Logs ----
+*.log
+logs/
+
+# ---- Local data scratch ----
+/data/
+/tmp/
+/scratch/
+
+# ---- OS ----
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ---- Spec drafts (only V1.0.1 official set lives in docs/spec) ----
+docs/spec/drafts/
+docs/spec/*_DRAFT*
+
+# ---- Misc ----
+*.bak
+*.tmp
+.cache/

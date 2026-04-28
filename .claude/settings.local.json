@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xxd:*)",
+      "Bash(cp:*)",
+      "Bash(docker compose:*)",
+      "Bash(cmd.exe:*)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/ProgramData/**)",
+      "Bash(winget search:*)",
+      "Bash(shutdown.exe:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(docker:*)",
+      "Bash(wsl:*)",
+      "Bash(winget list:*)",
+      "Bash(winget install:*)",
+      "Bash(source .env:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
