@@ -15,6 +15,7 @@
 #   make rollback     roll back last migration
 #   make smoke-test   run schema integrity tests     [Batch 4+]
 #   make lint         run forbidden-pattern checks   [Batch 5+]
+#   make seed-calendar populate trading calendar      [Batch 7+]
 # ============================================================
 
 # Load .env if present. Safe if missing (vars come from environment).
@@ -37,7 +38,7 @@ COMPOSE := $(shell command -v docker-compose 2>/dev/null || echo "docker compose
 ALEMBIC := alembic -c alembic.ini
 
 .DEFAULT_GOAL := help
-.PHONY: help up down clean psql health migrate-init migrate rollback smoke-test lint check-env stub
+.PHONY: help up down clean psql health migrate-init migrate rollback smoke-test lint seed-calendar check-env stub
 
 # ---------- Help ----------
 
@@ -147,3 +148,6 @@ smoke-test: check-env ## Run schema integrity smoke tests
 
 lint: ## Run forbidden-pattern static checks
 	python -m pytest tests/lint/ -v
+
+seed-calendar: check-env ## Populate tase_trading_calendar (5y back, 1y forward; idempotent)
+	python scripts/seed_calendar.py
