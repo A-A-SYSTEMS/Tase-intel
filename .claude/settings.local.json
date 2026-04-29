@@ -15,7 +15,17 @@
       "Bash(winget list:*)",
       "Bash(winget install:*)",
       "Bash(source .env:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(where gh:*)",
+      "Bash(source:*)",
+      "Bash(.venv/Scripts/python:*)",
+      "Bash(.venv/bin/python:*)",
+      "Bash(python:*)",
+      "Bash(pip show:*)",
+      "Bash(pip list:*)",
+      "Bash(.venv/bin/pytest:*)",
+      "Bash(pip install:*)",
+      "Bash(pytest:*)"
     ]
   }
 }

@@ -142,8 +142,8 @@ stub:
 	@echo "       See: docs/spec/IMPLEMENTATION_GUARDRAILS_V1.0.1.md"
 	@exit 1
 
-smoke-test: ## [Batch 4+] Run schema integrity smoke tests
-	@$(MAKE) stub STUB_TARGET=smoke-test STUB_BATCH="Batch 4 (Smoke tests)"
+smoke-test: check-env ## Run schema integrity smoke tests
+	python -m pytest tests/smoke/ -v
 
 lint: ## [Batch 5+] Run forbidden-pattern static checks
 	@$(MAKE) stub STUB_TARGET=lint STUB_BATCH="Batch 5 (Lint tests)"
