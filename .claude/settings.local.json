@@ -25,7 +25,16 @@
       "Bash(pip list:*)",
       "Bash(.venv/bin/pytest:*)",
       "Bash(pip install:*)",
-      "Bash(pytest:*)"
+      "Bash(pytest:*)",
+      "Bash(.venv/Scripts/python.exe:*)",
+      "Bash(.venv/Scripts/alembic current:*)",
+      "Bash(ls:*)",
+      "Bash(PATH=\"$PWD/.venv/bin:$PATH\" alembic current:*)",
+      "Bash(rm:*)",
+      "Bash(make health:*)",
+      "Bash(where make:*)",
+      "Read(//mingw64/**)",
+      "Read(//usr/**)"
     ]
   }
 }

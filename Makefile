@@ -145,5 +145,5 @@ stub:
 smoke-test: check-env ## Run schema integrity smoke tests
 	python -m pytest tests/smoke/ -v
 
-lint: ## [Batch 5+] Run forbidden-pattern static checks
-	@$(MAKE) stub STUB_TARGET=lint STUB_BATCH="Batch 5 (Lint tests)"
+lint: ## Run forbidden-pattern static checks
+	python -m pytest tests/lint/ -v
