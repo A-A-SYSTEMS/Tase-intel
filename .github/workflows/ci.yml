@@ -1,0 +1,130 @@
+# ============================================================
+# tase-intel — CI Pipeline
+# ============================================================
+# Runs: migrate → smoke-test → lint on every push/PR to main.
+# Service container: TimescaleDB 2.14.2 on Postgres 15.
+# Sole authority: IMPLEMENTATION_GUARDRAILS_V1.0.1.md §4, §5.
+# ============================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate (migrate + smoke + lint)
+    runs-on: ubuntu-22.04
+    timeout-minutes: 15
+
+    services:
+      db:
+        image: timescale/timescaledb:2.14.2-pg15
+        env:
+          POSTGRES_USER: tase_intel
+          POSTGRES_PASSWORD: ci_password_not_secret
+          POSTGRES_DB: tase_intel
+          LANG: C.UTF-8
+          LC_ALL: C.UTF-8
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tase_intel -d tase_intel"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      POSTGRES_USER: tase_intel
+      POSTGRES_PASSWORD: ci_password_not_secret
+      POSTGRES_DB: tase_intel
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: "5432"
+      DATABASE_URL: postgresql+psycopg://tase_intel:ci_password_not_secret@localhost:5432/tase_intel
+      APP_ENV: ci
+      LOG_LEVEL: INFO
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Verify Python and tools
+        run: |
+          python --version
+          pip --version
+          alembic --version
+          pytest --version
+
+      - name: Verify Postgres + TimescaleDB ready
+        run: |
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -p 5432 -U tase_intel; then
+              echo "Postgres is ready."
+              break
+            fi
+            echo "Waiting for Postgres... ($i/30)"
+            sleep 1
+          done
+          PGPASSWORD=ci_password_not_secret psql -h localhost -p 5432 -U tase_intel -d tase_intel \
+            -c "SELECT extname, extversion FROM pg_extension WHERE extname = 'timescaledb';"
+
+      - name: Create .env file
+        run: |
+          {
+            echo "POSTGRES_USER=tase_intel"
+            echo "POSTGRES_PASSWORD=ci_password_not_secret"
+            echo "POSTGRES_DB=tase_intel"
+            echo "POSTGRES_HOST=localhost"
+            echo "POSTGRES_PORT=5432"
+            echo "DATABASE_URL=postgresql+psycopg://tase_intel:ci_password_not_secret@localhost:5432/tase_intel"
+            echo "APP_ENV=ci"
+            echo "LOG_LEVEL=INFO"
+            echo "TIMESCALEDB_IMAGE=timescale/timescaledb:2.14.2-pg15"
+          } > .env
+          echo ".env created."
+
+      - name: Run database migrations
+        run: alembic upgrade head
+
+      - name: Verify migration state
+        run: alembic current
+
+      - name: Run smoke tests
+        run: pytest tests/smoke/ -v
+
+      - name: Run forbidden-pattern lint
+        run: pytest tests/lint/ -v
+
+      - name: Capture state on failure
+        if: failure()
+        run: |
+          echo "=== Alembic state ==="
+          alembic current || echo "(failed to query alembic)"
+          echo ""
+          echo "=== Public schema tables ==="
+          PGPASSWORD=ci_password_not_secret psql -h localhost -p 5432 -U tase_intel -d tase_intel \
+            -c "\dt public.*" || true
+          echo ""
+          echo "=== Public schema functions ==="
+          PGPASSWORD=ci_password_not_secret psql -h localhost -p 5432 -U tase_intel -d tase_intel \
+            -c "\df public.*" || true
